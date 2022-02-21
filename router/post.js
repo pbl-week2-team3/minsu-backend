@@ -18,25 +18,32 @@ routes.get('/post', async (req, res) => {
 routes.post('/post', auth, async (req, res) => {
   const { user_id, contents, img_url } = req.body;
 
+  console.log(res.locals.user);
+  if (!contents || img_url) {
+    res.status(401).json({
+      success: false,
+      message: '게시글 또는 이미지가 없습니다.',
+    });
+    return;
+  }
+
   await posts.create({
     user_id,
     contents,
     img: img_url,
   });
 
-  const post = await posts.findOne({user_id});
-  console.log(post);
+  const post = await posts.findAll({where: {user_id}});
+  // console.log(post);
 
-  const id = 1;
-  const reg_date = '22.2.1';
   res.status(201).json({
-    id,
-    reg_date,
+    success: true,
   });
 });
 
 // 게시글 조회
 routes.get('/post/:postId', async (req, res) => {
+  
   res.status(200).json({});
 });
 
