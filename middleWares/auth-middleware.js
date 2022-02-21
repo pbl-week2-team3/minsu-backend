@@ -1,21 +1,26 @@
 const jwt = require('jsonwebtoken');
 const { users } = require('../models');
+const secretKey = require('../config/secretkey').secretKey;
+const option = require('../config/secretkey').option;
+
+// 
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
-  const [tokenType, tokenValue] = authorization.split(' ');
+  // console.log(authorization);
   
-  if (tokenType !== 'Bearer') {
+  if (!authorization) {
     res.status(401).json({
-      messages: '로그인 후 사용하세요.',
+      success: false,
+      messages: '로그인 후 사용하세요',
     });
-    return;
   }
+  
 
   try {
-    const { id } = jwt.verify(tokenValue, 'secret-key');
-    
-    users.findByPk(id).then((user) => {
+    const decode = jwt.verify(authorization, secretKey);
+    console.log(decode.userId);
+    users.findByPk(decode.userId).then((user) => {
       res.locals.user = user;
       next();
     });
