@@ -13,6 +13,7 @@ const commentRouter = require('./router/comment');
 // app.use(cors());
 app.use(express.json());
 // app.use();
+app.use(express.static('static'));
 app.use('/api', [userRouter, postRouter, commentRouter]);
 
 app.listen(port, () => {
