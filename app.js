@@ -1,6 +1,6 @@
 const express = require('express');
-const requset = require('./middleWares/requset-Middleware');
 const cookieParser = require('cookie-parser');
+const requestIp = require('request-ip');
 const app = express();
 
 const port = 8080;
@@ -9,6 +9,11 @@ const userRouter = require('./router/user');
 const postRouter = require('./router/post');
 const commentRouter = require('./router/comment');
 
+const requestMiddleware = (req, res, next) => {
+  console.log('Request URL:', req.originalUrl, '-', "client IP: " +requestIp.getClientIp(req), new Date());
+  next();
+};
+
 app.all('/*', function(req, res, next) { 
   res.header("Access-Control-Allow-Origin", "*"); 
   res.header("Access-Control-Allow-Headers", "X-Requested-With"); 
@@ -16,8 +21,8 @@ app.all('/*', function(req, res, next) {
 });
 app.use(express.json());
 app.use(cookieParser());
-// app.use();
 app.use(express.static('static'));
+app.use(requestMiddleware);
 app.use('/api', [userRouter, postRouter, commentRouter]);
 
 app.listen(port, () => {
