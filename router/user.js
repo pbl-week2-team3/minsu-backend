@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const auth = require('../middleWares/auth-middleware');
 const { users } = require('../models');
+const loginCheck = require('../middleWares/loginCheck');
 const secretKey = require('../config/secretkey').secretKey;
 const option = require('../config/secretkey').option;
 
@@ -16,18 +17,17 @@ const routes = express.Router();
 const key = 'secret-secret-key';
 
 const registerSchema = joi.object({
-  id: joi.string().alphanum().min(3).required(),
-  nickname: joi.string().min(3).required(),
+  id: joi.string().required(),
+  nickname: joi.string().alphanum().min(3).required(),
   password: joi.string().min(4).required(),
   confirmPassword: joi.string(),
   profile_img_url: joi.string(),
 });
 // 회원가입
-routes.post('/register', async (req, res) => {
+routes.post('/register', loginCheck, async (req, res) => {
+  let { id, nickname, password, confirmPassword, profile_img_url } = await registerSchema.validateAsync(req.body);
 
-  let {id, nickname, password, confirmPassword, profile_img_url} = await registerSchema.validateAsync(req.body);
-
-  console.log(id, nickname, password, confirmPassword, profile_img_url);
+  // console.log(id, nickname, password, confirmPassword, profile_img_url);
 
   if (password !== confirmPassword) {
     res.status(401).json({
@@ -36,7 +36,7 @@ routes.post('/register', async (req, res) => {
     return;
   }
 
-  const findUsers = await users.findOne({where: {id, nickname}});
+  const findUsers = await users.findOne({ where: { id, nickname } });
 
   // console.log(user[0].id);
   if (findUsers) {
@@ -46,36 +46,58 @@ routes.post('/register', async (req, res) => {
     return;
   }
 
-
   if (profile_img_url === ' ' || profile_img_url === null) {
-    profile_img_url = 'img/default.png';
+    profile_img_url = 'https://media.discordapp.net/attachments/769096782088503298/945677346525040690/default.png';
   }
-  
-  await users.create({id, nickname, password, profile_img_url});
+
+  await users.create({ id, nickname, password, profile_img_url });
   res.status(201).json({
     success: true,
     messages: '회원가입 성공!',
-    });
+  });
 });
 
-const loginSchema= joi.object({
+const loginSchema = joi.object({
   id: joi.string().required(),
   password: joi.string().required(),
 });
 // 로그인
-routes.post('/login', async (req, res) => {
+routes.post('/login', loginCheck, async (req, res) => {
+  // console.log(res.locals.boolean);
+  if (res.locals.boolean) {
+    res.status(200).json({
+      success: true,
+      message: '이미 로그인이 되어있습니다.'
+    });
+    return;
+  }
+
   try {
     const { id, password } = await loginSchema.validateAsync(req.body);
 
     const findUser = await users.findByPk(id);
     // console.log(findUser.id, key);
-  
+
     if (findUser && findUser.password === password) {
-      const token = jwt.sign({userId: findUser.id}, secretKey, option);
+      const token = jwt.sign({ userId: findUser.id }, secretKey, option);
       // console.log(jwt.verify(token, key));
-      res.status(200).json({
+      const cookieValue = {
+        token,
+        nickname: findUser.nickname,
+      }
+      res.cookie('cookie', cookieValue, {
+        path: '/',
+        maxAge: 3600000,
+      });
+      res.status(201).json({
         success: true,
         messages: '로그인 성공!',
+        token,
+      });
+    } else {
+      res.status(200).json({
+        success: false,
+        messages: '아이디 또는 비밀번호가 틀렸습니다.',
         token,
       });
     }
@@ -85,5 +107,13 @@ routes.post('/login', async (req, res) => {
     res.status(401).json({});
   }
 });
+
+routes.get('/logout', (req, res) => {
+  res.clearCookie('cookie');
+  res.status(200).json({
+    success: true,
+    messages: '로그아웃',
+  });
+})
 
 module.exports = routes;
