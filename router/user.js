@@ -25,6 +25,13 @@ const registerSchema = joi.object({
 });
 // 회원가입
 routes.post('/register', loginCheck, async (req, res) => {
+  if (res.locals.boolean) {
+    res.status(200).json({
+      success: true,
+      message: '로그인 중 입니다.'
+    });
+    return;
+  }
   let { id, nickname, password, confirmPassword, profile_img_url } = await registerSchema.validateAsync(req.body);
 
   // console.log(id, nickname, password, confirmPassword, profile_img_url);
@@ -43,9 +50,9 @@ routes.post('/register', loginCheck, async (req, res) => {
     return;
   }
 
-  const findUsers = await users.findOne({ where: { id, nickname } });
+  const findUser = await users.findOne({ where: {[Op.or]: [{id},{nickname}]}});
   // console.log(findUsers);
-  if (findUsers) {
+  if (findUser) {
     res.status(401).json({
       messages: '아이디 또는 닉네임이 중복됩니다.',
     });
@@ -67,6 +74,7 @@ const loginSchema = joi.object({
   id: joi.string().required(),
   password: joi.string().required(),
 });
+
 // 로그인
 routes.post('/login', loginCheck, async (req, res) => {
   // console.log(res.locals.boolean);
