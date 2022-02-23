@@ -28,6 +28,13 @@ routes.post('/register', loginCheck, async (req, res) => {
   let { id, nickname, password, confirmPassword, profile_img_url } = await registerSchema.validateAsync(req.body);
 
   // console.log(id, nickname, password, confirmPassword, profile_img_url);
+  if (password.includes(nickname)) {
+    res.status(401).json({
+      success: false,
+      message: '사용할 수 없는 비밀번호입니다.\n닉네임과 겹치지 않게 만들어주세요.'
+    });
+    return;
+  }
 
   if (password !== confirmPassword) {
     res.status(401).json({
@@ -37,8 +44,7 @@ routes.post('/register', loginCheck, async (req, res) => {
   }
 
   const findUsers = await users.findOne({ where: { id, nickname } });
-
-  // console.log(user[0].id);
+  // console.log(findUsers);
   if (findUsers) {
     res.status(401).json({
       messages: '아이디 또는 닉네임이 중복됩니다.',
