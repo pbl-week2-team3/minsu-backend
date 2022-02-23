@@ -49,8 +49,7 @@ node.js를 사용한 API 만들기
   - HTTP Status Code: 201
   - payload: 
   {
-    id(post): number,
-    reg_date: date,
+    success: boolean,
   }
 
 게시글 조회
@@ -61,13 +60,13 @@ node.js를 사용한 API 만들기
   - HTTP Status Code: 200
   - payload:
   {
+    id(post): number,
     nickname: string,
     contents: string,
-    comments:[{
-      id: number,
-      post_id: number,
-      nickname: string,
-    }]
+    profile_img: string,
+    img_url: string,
+    like_count: number,
+    like_check: boolean,
     reg_date: date,
   }
 
@@ -136,45 +135,6 @@ node.js를 사용한 API 만들기
     id(comment): number,
     nickname: string,
     text: string,
-  }
-
-댓글 수정
-- Request
-  - Method: PUT
-  - URL: /api/comment/:postId/:commentId
-  - Headers:
-  {
-    authorization: token,
-  }
-  - Body:
-  {
-    text: string,
-  }
-- Response
-  - HTTP Status Code: 200
-  - payload:
-  {
-    result: {
-      success: boolean,
-      messages: string,
-    },
-  }
-
-댓글 삭제
-- Request
-  - Method: DELETE
-  - URL: /api/comment/:postId/:commentId
-  - Headers: {
-    authorization: token,
-  }
-- Response
-  - HTTP Status Code: 200
-  - payload:
-  {
-    result: {
-      success: boolean,
-      messages: string,
-    },
   }
 
 ### 3. 좋아요
@@ -252,6 +212,11 @@ node.js를 사용한 API 만들기
       token: string,
     },
   }
+
+로그아웃
+- Request
+  - Method: GET
+  - URL: /api/logout
 
 알림 설정
 - Request
