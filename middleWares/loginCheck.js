@@ -8,14 +8,15 @@ user와 boolean값을 반환.
 */
 module.exports = (req, res, next) => {
   // console.log('미들웨어 check');
-  const { authorization } = req.cookies;
-  // console.log(authorization);
-  if (!authorization) {
+  const { cookie } = req.cookies;
+  // console.log(cookie.token);
+  if (!cookie) {
     res.locals.boolean = false;
+    next();
     return;
   }
 
-  const { userId } = jwt.verify(authorization, secretKey);
+  const { userId } = jwt.verify(cookie.token, secretKey);
   // console.log(userId);
   const user = users.findOne({where: {id: userId}});
   res.locals.user = user;
