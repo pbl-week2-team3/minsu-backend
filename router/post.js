@@ -26,7 +26,7 @@ routes.get('/post', loginCheck, async (req, res) => {
           }
         }
       })();
-
+      // console.log(user.nickname, res.locals.user.nickname);
       return {
         id: temp.id,
         nickname: user.nickname,
@@ -55,7 +55,7 @@ routes.get('/post', loginCheck, async (req, res) => {
           }
           return false;
         })(),
-        me: (() => res.locals.user.nickname === temp.nickname)(),
+        me: (() => res.locals.user.id === user.id)(),
         reg_date: temp.createdAt
       };
     });
@@ -111,7 +111,7 @@ routes.post('/post', auth, async (req, res) => {
   const { user_id, contents, img_url } = req.body;
 
   console.log(res.locals.user);
-  if (!contents || img_url) {
+  if (!contents || !img_url) {
     res.status(401).json({
       success: false,
       message: '게시글 또는 이미지가 없습니다.',
@@ -157,10 +157,7 @@ routes.get('/post/:postId', loginCheck, async (req, res) => {
         }
         return false;
       })(),
-      me: (() => {
-        if (findPost.user_id === res.locals.user.id) return true;
-        return false;
-      })(),
+      me: (() => findUser.id === res.locals.user.id)(),
       reg_date: findPost.createdAt,
     });
     return;
@@ -199,7 +196,7 @@ routes.put('/post/:postId', auth, async (req, res) => {
   const { contents, img_url } = req.body;
   const post = await posts.findOne({ where: { id: postId } });
 
-  if (post.user_id !== res.locals.id) {
+  if (post.user_id !== res.locals.user.id) {
     res.status(401).json({ success: false, messages: "안됩니다." });
     return;
   }
@@ -224,6 +221,7 @@ routes.put('/post/:postId', auth, async (req, res) => {
       if (like) return true;
       return false;
     })(),
+    me: true,
     reg_date: post.createdAt,
   });
 });
