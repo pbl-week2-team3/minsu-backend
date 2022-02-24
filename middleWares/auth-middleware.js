@@ -24,6 +24,7 @@ module.exports = (req, res, next) => {
       next();
     });
   } catch (error) {
+    res.clearCookie('cookie');
     res.status(401).json({
       messages: '로그인 후 사용하세요',
     });
