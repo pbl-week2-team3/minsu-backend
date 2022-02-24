@@ -4,7 +4,6 @@ const joi = require('joi');
 const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
 
-const auth = require('../middleWares/auth-middleware');
 const { users } = require('../models');
 const loginCheck = require('../middleWares/loginCheck');
 const secretKey = require('../config/secretkey').secretKey;
@@ -59,7 +58,7 @@ routes.post('/register', loginCheck, async (req, res) => {
     return;
   }
 
-  if (profile_img_url === ' ' || profile_img_url === null) {
+  if (profile_img_url === ' ' || profile_img_url === null || profile_img_url === undefined) {
     profile_img_url = 'https://media.discordapp.net/attachments/769096782088503298/945677346525040690/default.png';
   }
 
