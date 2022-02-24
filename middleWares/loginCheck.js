@@ -16,12 +16,19 @@ module.exports = async (req, res, next) => {
     return;
   }
 
-  const { userId } = jwt.verify(cookie.token, secretKey);
+  try {
+    const { userId } = jwt.verify(cookie.token, secretKey);
   // console.log(userId);
   const user = await users.findOne({where: {id: userId}});
   // console.log(user)
   res.locals.user = user;
   res.locals.boolean = true;
+  } catch (error) {
+    res.locals.boolean = false;
+    res.clearCookie('cookie');
+    next();
+    return;
+  }
 
   next();
 }
