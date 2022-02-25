@@ -1,13 +1,13 @@
 const jwt = require('jsonwebtoken');
 const { users } = require('../models');
-const secretKey = require('../config/secretkey').secretKey;
+const {secretKey} = require('../config/secretkey');
 
 
 module.exports = (req, res, next) => {
-  const { cookie } = req.cookies;
+  const { token } = req.headers;
   // console.log(authorization);
 
-  if (!cookie) {
+  if (!token) {
     res.status(401).json({
       success: false,
       messages: '로그인 후 사용하세요',
@@ -17,14 +17,13 @@ module.exports = (req, res, next) => {
 
 
   try {
-    const decode = jwt.verify(cookie.token, secretKey);
-    // console.log(decode.userId);
-    users.findByPk(decode.userId).then((user) => {
+    const decode = jwt.verify(token, secretKey);
+    // console.log(decode);
+    users.findByPk(decode.user_id).then((user) => {
       res.locals.user = user;
       next();
     });
   } catch (error) {
-    res.clearCookie('cookie');
     res.status(401).json({
       messages: '로그인 후 사용하세요',
     });
