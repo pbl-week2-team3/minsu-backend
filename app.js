@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const requestIp = require('request-ip');
+const cors = require('cors');
 const app = express();
 
 const port = 8080;
@@ -14,11 +15,12 @@ const requestMiddleware = (req, res, next) => {
   next();
 };
 
-app.all('/*', function(req, res, next) { 
-  res.header("Access-Control-Allow-Origin", "*"); 
-  res.header("Access-Control-Allow-Headers", "X-Requested-With"); 
-  next(); 
-});
+// app.all('/*', function(req, res, next) { 
+//   res.header("Access-Control-Allow-Origin", "*"); 
+//   res.header("Access-Control-Allow-Headers", "X-Requested-With"); 
+//   next(); 
+// });
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static('static'));
