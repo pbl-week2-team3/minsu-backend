@@ -10,7 +10,7 @@ node.js를 사용한 API 만들기
 - cookie-parser
 - request-ip
 
-## 주소 (작동중)
+## API서버 주소 (작동중)
 - http://onlyonep.shop/
 
 ## 유의 사항
