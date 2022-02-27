@@ -3,7 +3,7 @@ const { Op } = require('sequelize');
 const { posts, likes, users } = require('../models');
 const auth = require('../middleWares/auth-middleware');
 const loginCheck = require('../middleWares/loginCheck');
-const res = require('express/lib/response');
+const { getPost, loginGetPost, detailLogin, detail } = require('../tools/posting');
 
 const routes = express.Router();
 
@@ -12,97 +12,19 @@ routes.get('/post', loginCheck, async (req, res) => {
   const findPost = await posts.findAll();
   const findLike = await likes.findAll();
   const findUser = await users.findAll();
-  let post;
 
-  // console.log(res.locals.boolean)
+  // console.log(res.locals.boolean, findUser);
   // 로그인 함
   if (res.locals.boolean) {
-    post = findPost.map((temp) => {
-      // 게시글 쓴 사람
-      const user = (() => {
-        for (const find of findUser) {
-          if (find.id === temp.user_id) {
-            return find;
-          }
-        }
-      })();
-      // console.log(user.nickname, res.locals.user.nickname);
-      return {
-        id: temp.id,
-        nickname: user.nickname,
-        contents: temp.contents,
-        profile_img: user.profile_img_url,
-        img_url: temp.img,
-        like_count: (() => {
-          let count = 0;
-
-          if (!findLike) return 0;
-          for (const like of findLike) {
-            if (like.post_id === temp.id) {
-              count++;
-            }
-          }
-          return count;
-        })(),
-        like_check: (() => {
-          if (!findLike) {
-            return false;
-          }
-          for (const like of findLike) {
-            if (res.locals.user.id === like.user_id) {
-              return true;
-            }
-          }
-          return false;
-        })(),
-        me: (() => res.locals.user.id === user.id)(),
-        reg_date: temp.createdAt
-      };
-    });
-
     res.status(200).json({
-      post,
+      post: loginGetPost(findUser, findPost, findLike, res.locals.user),
     });
     return;
   }
 
-
   // 로그인 안함
-  post = findPost.map((temp, index) => {
-    // 게시글 쓴 사람
-    const user = (() => {
-      for (const find of findUser) {
-        if (find.id === temp.user_id) {
-          return find;
-        }
-      }
-    })();
-
-    return {
-      id: temp.id,
-      nickname: user.nickname,
-      contents: temp.contents,
-      profile_img: user.profile_img_url,
-      img_url: temp.img,
-      like_count: (() => {
-        let count = 0;
-
-        if (!findLike) return 0;
-        for (const like of findLike) {
-          if (like.post_id === temp.id) {
-            count++;
-          }
-        }
-        return count;
-      })(),
-      like_check: false,
-      me: false,
-      reg_date: temp.createdAt
-    };
-  });
-
   res.status(200).json({
-    post,
+    post: getPost(findUser, findPost, findLike),
   });
 });
 
@@ -110,7 +32,7 @@ routes.get('/post', loginCheck, async (req, res) => {
 routes.post('/post', auth, async (req, res) => {
   const { user_id, contents, img_url } = req.body;
 
-  console.log(res.locals.user);
+  // console.log(res.locals.user);
   if (!contents || !img_url) {
     res.status(401).json({
       success: false,
@@ -140,54 +62,45 @@ routes.get('/post/:postId', loginCheck, async (req, res) => {
   const findPost = await posts.findByPk(postId);
   const findLike = await likes.findAll({ where: { post_id: postId } });
   const findUser = await users.findOne({ where: { id: findPost.user_id } });
+  let post;
 
   // 로그인 함
   if (res.locals.boolean) {
-    // console.log("로그인")
+    post = detailLogin(findUser, findPost, findLike, res.locals.user);
     res.status(200).json({
-      id: findPost.id,
-      nickname: findUser.nickname,
-      contents: findPost.contents,
-      profile_img: findUser.profile_img_url,
-      img_url: findPost.img,
-      like_count: findLike.length,
-      like_check: (() => {
-        for (const find of findLike) {
-          if (find.user_id === res.locals.user.id) return true;
-        }
-        return false;
-      })(),
-      me: (() => findUser.id === res.locals.user.id)(),
-      reg_date: findPost.createdAt,
+      post,
+      success: true,
+      messages: "조회 완료",
     });
     return;
   }
+
+  post = detail(findUser, findPost, findLike);
+
   // 로그인 안함
   res.status(200).json({
-    id: findPost.id,
-    nickname: findUser.nickname,
-    contents: findPost.contents,
-    profile_img: findUser.profile_img_url,
-    img_url: findPost.img,
-    like_count: findLike.length,
-    like_check: (() => {
-      for (const find of findLike) {
-        if (find.user_id === findUser.id) return true;
-      }
-      return false;
-    })(),
-    me: false,
-    reg_date: findPost.createdAt,
+    post,
+    success: true,
+    messages: "조회 완료",
   });
 });
 
 // 게시글 삭제
 routes.delete('/post/:postId', auth, async (req, res) => {
-  await posts.destroy({ where: { id: postId } });
-  res.status(200).json({
-    success: true,
-    messages: '삭제되었습니다.',
-  });
+  const { postId } = req.params;
+  try {
+    await posts.destroy({ where: { id: postId } });
+    res.status(200).json({
+      success: true,
+      messages: '삭제되었습니다.',
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      messages: '잘못된 요청입니다.',
+    });
+  }
+
 });
 
 // 게시글 수정
@@ -230,7 +143,7 @@ routes.put('/post/:postId', auth, async (req, res) => {
 routes.post('/post/:postId/like', auth, async (req, res) => {
   const { postId } = req.params;
   const likeCheck = await likes.findOne({ where: { user_id: res.locals.user.id, post_id: postId } });
-  console.log(likeCheck)
+  // console.log(likeCheck)
   if (likeCheck) {
     await likeCheck.destroy();
     res.status(200).json({
