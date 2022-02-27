@@ -11,7 +11,7 @@ const postRouter = require('./router/post');
 const commentRouter = require('./router/comment');
 
 const requestMiddleware = (req, res, next) => {
-  console.log('Request URL:', req.originalUrl, '-', "client IP: " +requestIp.getClientIp(req), new Date());
+  console.log('Request URL:', req.originalUrl, '-', "client IP: " + requestIp.getClientIp(req), '-', new Date());
   next();
 };
 
@@ -30,3 +30,5 @@ app.use('/api', [userRouter, postRouter, commentRouter]);
 app.listen(port, () => {
   console.log(port + '서버가 켜졌습니다.');
 })
+
+module.exports = app;
