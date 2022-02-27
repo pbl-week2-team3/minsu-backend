@@ -7,6 +7,15 @@ node.js를 사용한 API 만들기
   - mysql
   - sequelize
 - joi : https://www.npmjs.com/package/joi
+- cookie-parser
+- request-ip
+
+## 주소 (작동중)
+- http://onlyonep.shop/
+
+## 유의 사항
+프로필 이미지가 없을땐 공백으로 넣어주세요.
+공백으로 들어오면 undefined가 나면서 작동이 되지 않습니다...
 
 ## API
 ### 1. 게시글
@@ -26,6 +35,7 @@ node.js를 사용한 API 만들기
       img_url: string,
       like_count: number,
       like_check: boolean,
+      me: boolean,
       reg_date: date,
     }]
   }
@@ -67,6 +77,7 @@ node.js를 사용한 API 만들기
     img_url: string,
     like_count: number,
     like_check: boolean,
+    me: boolean,
     reg_date: date,
   }
 
@@ -112,6 +123,7 @@ node.js를 사용한 API 만들기
     img_url: string,
     like_count: number,
     like_check: boolean,
+    me: boolean,
     reg_date: date,
   }
 
