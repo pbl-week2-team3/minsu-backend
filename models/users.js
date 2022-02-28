@@ -26,5 +26,18 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'users',
   });
+
+  users.associate = models => {
+    users.hasMany(models.posts, {
+      foreignKey: 'user_id',
+      sourceKey: 'id'
+    })
+
+    users.hasMany(models.likes, {
+      foreignKey: 'user_id',
+      sourceKey: 'id'
+    })
+  }
+
   return users;
 };

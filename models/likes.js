@@ -24,5 +24,22 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'likes',
   });
+
+  likes.associate = models => {
+    likes.belongsTo(models.posts, {
+      foreignKey: "post_id",
+      sourceKey: 'id',
+      onDelete: 'CASCADE',
+      onUpdate: 'NO ACTION'
+    });
+
+    likes.belongsTo(models.users, {
+      foreignKey: 'user_id',
+      sourceKey: 'id',
+      onDelete: 'CASCADE',
+      onUpdate: 'NO ACTION'
+    });
+  };
+
   return likes;
 };
