@@ -59,6 +59,12 @@ exports.p3 = {
   reg_date: date1,
 };
 
+exports.p5 = {
+  user_id: 'test@test.com',
+  contents: 'test Code',
+  img_url: 'img_url'
+}
+
 exports.p4 = {
   id: 1,
   nickname: "minsu",
@@ -70,3 +76,27 @@ exports.p4 = {
   me: true,
   reg_date: date1,
 };
+
+exports.user1 = {
+  id: 'test1@test.com',
+  nickname: 'aaa',
+  password: 'qwer1234',
+  confirmPassword: 'qwer1234',
+  profile_img_url: "https://media.discordapp.net/attachments/769096782088503298/947087079056212038/1.png",
+}
+
+exports.user2 = {
+  id: 'test2@test.com',
+  nickname: 'aaaa',
+  password: 'qwer1234',
+  confirmPassword: 'qwer1234',
+  profile_img_url: "https://media.discordapp.net/attachments/769096782088503298/947087079056212038/1.png",
+}
+
+exports.user3 = {
+  id: 'test1@test.com',
+  nickname: 'aaaaa',
+  password: 'qwer1234',
+  confirmPassword: 'qwer1234',
+  profile_img_url: "https://media.discordapp.net/attachments/769096782088503298/947087079056212038/1.png",
+}

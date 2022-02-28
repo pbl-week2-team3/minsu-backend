@@ -58,8 +58,6 @@ let write = (me, post) => {
   return false;
 }
 
-
-
 // 게시글 불러오기
 exports.getPost = (user, post, like) => {
   // console.log(user, post, like, me);
@@ -127,7 +125,6 @@ exports.detail = (user, post, like) => {
       me: false,
       reg_date: post.createdAt,
     }
-
 }
 
 exports.detailLogin = (user, post, like, me) => {

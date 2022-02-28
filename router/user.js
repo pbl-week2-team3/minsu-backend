@@ -11,8 +11,6 @@ const { secretKey, option } = require('../config/secretkey');
 
 const routes = express.Router();
 
-const key = 'secret-secret-key';
-
 const registerSchema = joi.object({
   id: joi.string().required(),
   nickname: joi.string().alphanum().min(3).required(),
@@ -23,8 +21,8 @@ const registerSchema = joi.object({
 // 회원가입
 routes.post('/register', loginCheck, async (req, res) => {
   if (res.locals.boolean) {
-    res.status(200).json({
-      success: true,
+    res.status(401).json({
+      success: false,
       message: '로그인 중 입니다.'
     });
     return;
@@ -44,6 +42,7 @@ routes.post('/register', loginCheck, async (req, res) => {
 
     if (password !== confirmPassword) {
       res.status(401).json({
+        success: false,
         messages: "비밀번호가 일치하지 않습니다."
       });
       return;
@@ -52,7 +51,9 @@ routes.post('/register', loginCheck, async (req, res) => {
     const findUser = await users.findOne({ where: { [Op.or]: [{ id }, { nickname }] } });
     // console.log(findUsers);
     if (findUser) {
+
       res.status(401).json({
+        success: false,
         messages: '아이디 또는 닉네임이 중복됩니다.',
       });
       return;
@@ -71,7 +72,7 @@ routes.post('/register', loginCheck, async (req, res) => {
     // console.log(error);
     res.status(401).json({
       success: false,
-      messages: '다시 보내세요.',
+      messages: '빈칸이 있습니다.',
     });
     return;
   }

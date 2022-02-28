@@ -88,6 +88,16 @@ routes.get('/post/:postId', loginCheck, async (req, res) => {
 // 게시글 삭제
 routes.delete('/post/:postId', auth, async (req, res) => {
   const { postId } = req.params;
+  const post = await posts.findOne({ where: { id: postId } });
+
+  if (post.user_id !== res.locals.user.id) {
+    res.status(401).json({
+      success: false,
+      messages: "다른사람의 게시물은 삭제할 수 없습니다."
+    });
+    return;
+  }
+
   try {
     await posts.destroy({ where: { id: postId } });
     res.status(200).json({
@@ -107,42 +117,60 @@ routes.delete('/post/:postId', auth, async (req, res) => {
 routes.put('/post/:postId', auth, async (req, res) => {
   const { postId } = req.params;
   const { contents, img_url } = req.body;
-  const post = await posts.findOne({ where: { id: postId } });
 
-  if (post.user_id !== res.locals.user.id) {
-    res.status(401).json({ success: false, messages: "안됩니다." });
-    return;
+  try {
+    const post = await posts.findOne({ where: { id: postId } });
+
+    if (post.user_id !== res.locals.user.id) {
+      res.status(401).json({
+        success: false,
+        messages: "다른사람의 게시물은 수정할 수 없습니다."
+      });
+      return;
+    }
+
+    await post.set({
+      contents,
+      img: img_url
+    });
+    await post.save();
+    await post.reload();
+
+    const count = await likes.findAndCountAll({ where: { post_id: postId } });
+
+    res.status(200).json({
+      id: post.id,
+      nickname: res.locals.user.nickname,
+      contents: post.contents,
+      profile_img: res.locals.user.profile_img_url,
+      img_url: post.img,
+      like_count: count.count,
+      like_check: (() => {
+        const like = likes.findOne({ where: { user_id: res.locals.user.id } });
+        if (like) return true;
+        return false;
+      })(),
+      me: true,
+      reg_date: post.createdAt,
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      messages: '잘못된 요청입니다.',
+    });
   }
 
-  await post.set({
-    contents,
-    img: img_url
-  });
-  await post.save();
-  await post.reload();
-  const count = await likes.findAndCountAll({ where: { post_id: postId } });
-
-  res.status(200).json({
-    id: post.id,
-    nickname: res.locals.user.nickname,
-    contents: post.contents,
-    profile_img: res.locals.user.profile_img_url,
-    img_url: post.img,
-    like_count: count.count,
-    like_check: (() => {
-      const like = likes.findOne({ where: { user_id: res.locals.user.id } });
-      if (like) return true;
-      return false;
-    })(),
-    me: true,
-    reg_date: post.createdAt,
-  });
 });
 
 // 게시글 좋아요
 routes.post('/post/:postId/like', auth, async (req, res) => {
   const { postId } = req.params;
-  const likeCheck = await likes.findOne({ where: { user_id: res.locals.user.id, post_id: postId } });
+  const likeCheck = await likes.findOne({
+    where: {
+      user_id: res.locals.user.id,
+      post_id: postId
+    }
+  });
   // console.log(likeCheck)
   if (likeCheck) {
     await likeCheck.destroy();
